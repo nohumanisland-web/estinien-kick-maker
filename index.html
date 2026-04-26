@@ -38,18 +38,26 @@
       color: white;
     }
 
-    button {
+    button, select {
       padding: 10px 16px;
       border: none;
       border-radius: 8px;
+      font-weight: bold;
+    }
+
+    button {
       cursor: pointer;
       background: #4f8cff;
       color: white;
-      font-weight: bold;
     }
 
     button:hover {
       background: #6fa1ff;
+    }
+
+    select {
+      background: white;
+      color: #111;
     }
 
     .toggle-box {
@@ -77,10 +85,15 @@
 </head>
 <body>
   <h1>에스티니앙 킥 메이커</h1>
-  <p>사진 1장을 업로드하면 자동으로 합성됩니다.</p>
+  <p>사진 1장을 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
 
   <div class="panel">
     <input type="file" id="targetUpload" accept="image/*">
+
+    <select id="templateSelect">
+      <option value="close">클로즈샷</option>
+      <option value="wide">와이드샷</option>
+    </select>
 
     <div class="toggle-box">
       <input type="checkbox" id="effectToggle" checked>
@@ -97,25 +110,44 @@
     const ctx = canvas.getContext("2d");
 
     const targetUpload = document.getElementById("targetUpload");
+    const templateSelect = document.getElementById("templateSelect");
     const effectToggle = document.getElementById("effectToggle");
     const downloadBtn = document.getElementById("downloadBtn");
 
-    const bgImage = new Image();
-    bgImage.src = "assets/estinien-kick-close.png";
+    const templates = {
+      close: {
+        name: "close",
+        file: "assets/estinien-kick-close.png",
+        x: 1100,
+        y: 255,
+        baseSize: 220,
+        rotation: -10
+      },
+      wide: {
+        name: "wide",
+        file: "assets/estinien-kick-wide.png",
+        x: 850,
+        y: 310,
+        baseSize: 190,
+        rotation: -16
+      }
+    };
 
+    let currentTemplateName = "close";
+    let bgImage = new Image();
     let targetImage = null;
     let effectEnabled = true;
 
-    const template = {
-      x: 1100,
-      y: 255,
-      baseSize: 220,
-      rotation: -10
-    };
+    function loadBackground() {
+      const template = templates[currentTemplateName];
+      bgImage = new Image();
+      bgImage.onload = () => {
+        draw();
+      };
+      bgImage.src = template.file;
+    }
 
-    bgImage.onload = () => {
-      draw();
-    };
+    loadBackground();
 
     targetUpload.addEventListener("change", () => {
       const file = targetUpload.files[0];
@@ -132,71 +164,76 @@
       img.src = url;
     });
 
+    templateSelect.addEventListener("change", () => {
+      currentTemplateName = templateSelect.value;
+      loadBackground();
+    });
+
     effectToggle.addEventListener("change", () => {
       effectEnabled = effectToggle.checked;
       draw();
     });
 
-    function drawMotionEffect(drawWidth, drawHeight) {
-  const centerX = template.x;
-  const centerY = template.y;
+    function drawMotionEffect(template, drawWidth, drawHeight) {
+      const centerX = template.x;
+      const centerY = template.y;
 
-  
-  ctx.save();
-  ctx.globalAlpha = 0.55;
-  ctx.filter = "blur(3px)";
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      ctx.filter = "blur(3px)";
 
-  const lineStartX = centerX - 520;
-  const lineEndX = centerX - 30;
+      const lineStartX = centerX - 520;
+      const lineEndX = centerX - 30;
 
-  for (let i = 0; i < 18; i++) {
-    const y = centerY - drawHeight * 0.45 + i * (drawHeight / 14);
-    const thickness = i % 3 === 0 ? 10 : 5;
+      for (let i = 0; i < 18; i++) {
+        const y = centerY - drawHeight * 0.45 + i * (drawHeight / 14);
+        const thickness = i % 3 === 0 ? 10 : 5;
 
-    const gradient = ctx.createLinearGradient(lineStartX, y, lineEndX, y);
-    gradient.addColorStop(0, "rgba(255,255,255,0)");
-    gradient.addColorStop(0.25, "rgba(255,255,255,0.25)");
-    gradient.addColorStop(0.7, "rgba(30,30,30,0.45)");
-    gradient.addColorStop(1, "rgba(30,30,30,0)");
+        const gradient = ctx.createLinearGradient(lineStartX, y, lineEndX, y);
+        gradient.addColorStop(0, "rgba(255,255,255,0)");
+        gradient.addColorStop(0.25, "rgba(255,255,255,0.25)");
+        gradient.addColorStop(0.7, "rgba(30,30,30,0.45)");
+        gradient.addColorStop(1, "rgba(30,30,30,0)");
 
-    ctx.fillStyle = gradient;
-    ctx.fillRect(lineStartX, y, lineEndX - lineStartX, thickness);
-  }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(lineStartX, y, lineEndX - lineStartX, thickness);
+      }
 
-  ctx.restore();
+      ctx.restore();
 
-  
-  const trailCount = 5;
+      const trailCount = 5;
 
-  for (let i = trailCount; i >= 1; i--) {
-    ctx.save();
+      for (let i = trailCount; i >= 1; i--) {
+        ctx.save();
 
-    const offsetX = i * 32;
-    const offsetY = i * 2;
-    const alpha = 0.09 + i * 0.035;
+        const offsetX = i * 32;
+        const offsetY = i * 2;
+        const alpha = 0.09 + i * 0.035;
 
-    ctx.globalAlpha = alpha;
-    ctx.filter = "brightness(0) blur(1px)";
+        ctx.globalAlpha = alpha;
+        ctx.filter = "brightness(0) blur(1px)";
 
-    ctx.translate(template.x - offsetX, template.y + offsetY);
-    ctx.rotate((template.rotation - i * 2) * Math.PI / 180);
+        ctx.translate(template.x - offsetX, template.y + offsetY);
+        ctx.rotate((template.rotation - i * 2) * Math.PI / 180);
 
-    ctx.drawImage(
-      targetImage,
-      -drawWidth / 2,
-      -drawHeight / 2,
-      drawWidth,
-      drawHeight
-    );
+        ctx.drawImage(
+          targetImage,
+          -drawWidth / 2,
+          -drawHeight / 2,
+          drawWidth,
+          drawHeight
+        );
 
-    ctx.restore();
-  }
+        ctx.restore();
+      }
 
-  ctx.globalAlpha = 1;
-  ctx.filter = "none";
-}
+      ctx.globalAlpha = 1;
+      ctx.filter = "none";
+    }
 
     function draw() {
+      const template = templates[currentTemplateName];
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (bgImage.complete) {
@@ -208,12 +245,10 @@
         const drawWidth = (targetImage.width / maxSide) * template.baseSize;
         const drawHeight = (targetImage.height / maxSide) * template.baseSize;
 
-        
         if (effectEnabled) {
-          drawMotionEffect(drawWidth, drawHeight);
+          drawMotionEffect(template, drawWidth, drawHeight);
         }
 
-    
         ctx.save();
         ctx.translate(template.x, template.y);
         ctx.rotate(template.rotation * Math.PI / 180);
@@ -229,8 +264,10 @@
     }
 
     downloadBtn.addEventListener("click", () => {
+      const template = templates[currentTemplateName];
+
       const link = document.createElement("a");
-      link.download = "estinien-kick-maker.png";
+      link.download = "estinien-kick-maker-" + template.name + ".png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
