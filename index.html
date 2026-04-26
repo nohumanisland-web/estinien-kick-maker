@@ -268,10 +268,6 @@
       loadBackground();
     });
 
-    sizeSelect.addEventListener("change", () => {
-      draw();
-    });
-
     effectToggle.addEventListener("change", () => {
       effectEnabled = effectToggle.checked;
       draw();
@@ -345,11 +341,8 @@
 
       if (targetImage) {
         const maxSide = Math.max(targetImage.width, targetImage.height);
-        const sizeMultiplier = Number(sizeSelect.value);
-        const finalSize = template.baseSize * sizeMultiplier;
-        
-        const drawWidth = (targetImage.width / maxSide) * finalSize;
-        const drawHeight = (targetImage.height / maxSide) * finalSize;
+        const drawWidth = (targetImage.width / maxSide) * template.baseSize;
+        const drawHeight = (targetImage.height / maxSide) * template.baseSize;
 
         if (effectEnabled) {
           drawMotionEffect(template, drawWidth, drawHeight);
