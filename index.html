@@ -150,11 +150,8 @@
 
         ctx.globalAlpha = alpha;
         ctx.filter = `blur(${blurAmount}px)`;
-
-        // 뒤쪽 잔상은 약간 왼쪽 아래에 두기
         ctx.translate(template.x - offsetX, template.y + offsetY);
         ctx.rotate((template.rotation - i * 3) * Math.PI / 180);
-
         ctx.drawImage(
           targetImage,
           -drawWidth / 2,
