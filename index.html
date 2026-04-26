@@ -265,7 +265,7 @@
         name: "darijeopgi",
         file: "assets/estinien-kick-close.png",
 
-        // 앞쪽 = 기존 기준 유지
+        
         main: {
           x: 850,
           y: 310,
@@ -275,16 +275,16 @@
           motionVY: 0
         },
 
-        // 뒤쪽 = 고정 위치
+        
         rear: {
-          x: 140,
-          y: 595,
-          baseSize: 120,
-          rotation: 10,
+          x: 1150,
+          y: 130,
+          baseSize: 135,
+          rotation: -8,
 
-          // 오른쪽 위에서 이 캐릭터 쪽으로 다가오는 느낌
-          motionVX: -0.88,
-          motionVY: 0.48
+          
+          motionVX: -0.92,
+          motionVY: 0.25
         }
       },
 
@@ -292,7 +292,7 @@
         name: "daripyeogi",
         file: "assets/estinien-kick-wide.png",
 
-        // 앞쪽 = 기존 기준 유지
+        
         main: {
           x: 1100,
           y: 255,
@@ -302,16 +302,16 @@
           motionVY: 0
         },
 
-        // 뒤쪽 = 고정 위치
+        
         rear: {
-          x: 120,
-          y: 600,
-          baseSize: 135,
-          rotation: 12,
+          x: 1240,
+          y: 115,
+          baseSize: 145,
+          rotation: -8,
 
-          // 오른쪽 위에서 이 캐릭터 쪽으로 다가오는 느낌
-          motionVX: -0.88,
-          motionVY: 0.48
+          
+          motionVX: -0.92,
+          motionVY: 0.25
         }
       }
     };
@@ -319,7 +319,6 @@
     let currentTemplateName = "fold";
     let bgImage = new Image();
 
-    // 앞/뒤 이미지를 완전히 따로 관리
     let targetImage = null;
     let rearImage = null;
 
@@ -338,7 +337,7 @@
 
     loadBackground();
 
-    // 앞쪽 업로드
+    
     targetUpload.addEventListener("change", () => {
       const file = targetUpload.files[0];
       if (!file) return;
@@ -356,7 +355,7 @@
       img.src = url;
     });
 
-    // 뒤쪽 업로드
+    
     rearUpload.addEventListener("change", () => {
       const file = rearUpload.files[0];
       if (!file) return;
@@ -419,11 +418,9 @@
       const vx = vec.x;
       const vy = vec.y;
 
-      // 진행 방향에 수직인 벡터
       const px = -vy;
       const py = vx;
 
-      // 모션 라인
       ctx.save();
       ctx.globalAlpha = 0.42;
       ctx.filter = "blur(2.5px)";
@@ -457,7 +454,6 @@
 
       ctx.restore();
 
-      // 잔상
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
@@ -519,12 +515,12 @@
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
       }
 
-      // 뒤쪽: rearUpload로 넣은 사진만 사용
+      
       if (rearEnabled && rearImage && template.rear) {
         drawImageToSlot(rearImage, template.rear, rearEffectEnabled);
       }
 
-      // 앞쪽: targetUpload로 넣은 사진만 사용
+      
       if (targetImage && template.main) {
         drawImageToSlot(targetImage, template.main, effectEnabled);
       }
