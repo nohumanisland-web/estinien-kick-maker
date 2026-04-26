@@ -113,11 +113,10 @@
     const templateSelect = document.getElementById("templateSelect");
     const effectToggle = document.getElementById("effectToggle");
     const downloadBtn = document.getElementById("downloadBtn");
-
     const templates = {
       close: {
         name: "close",
-        file: "assets/estinien-kick-close.png",
+        file: "assets/estinien-kick-wide.png",   
         x: 1100,
         y: 255,
         baseSize: 220,
@@ -125,7 +124,7 @@
       },
       wide: {
         name: "wide",
-        file: "assets/estinien-kick-wide.png",
+        file: "assets/estinien-kick-close.png",  
         x: 850,
         y: 310,
         baseSize: 190,
@@ -178,7 +177,7 @@
       const centerX = template.x;
       const centerY = template.y;
 
-      // 1) 수평 속도선
+      
       ctx.save();
       ctx.globalAlpha = 0.55;
       ctx.filter = "blur(3px)";
@@ -202,7 +201,7 @@
 
       ctx.restore();
 
-      // 2) 검은 실루엣 잔상
+      
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
