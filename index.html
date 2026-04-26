@@ -3,9 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <title>에스티니앙 킥 메이커</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #ccc;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: #222;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input[type="file"] {
+      color: white;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #4f8cff;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #6fa1ff;
+    }
+
+    canvas {
+      max-width: 100%;
+      border: 2px solid #444;
+      border-radius: 12px;
+      background: #333;
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <h1>에스티니앙 킥 메이커</h1>
-  <p>사이트 테스트 성공!</p>
+  <p>사진 1장을 업로드하면 자동으로 합성됩니다.</p>
+
+  <div class="panel">
+    <input type="file" id="targetUpload" accept="image/*">
+    <button id="downloadBtn">PNG 저장</button>
+  </div>
+
+  <canvas id="canvas" width="1365" height="768"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const targetUpload = document.getElementById("targetUpload");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    const bgImage = new Image();
+    bgImage.src = "assets/estinien-kick-close.png";
+
+    let targetImage = null;
+
+    // 자동 배치값
+    const template = {
+      x: 1220,
+      y: 240,
+      baseSize: 260,
+      rotation: 10
+    };
+
+    bgImage.onload = () => {
+      draw();
+    };
+
+    targetUpload.addEventListener("change", () => {
+      const file = targetUpload.files[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+
+      img.onload = () => {
+        targetImage = img;
+        draw();
+      };
+
+      img.src = url;
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (bgImage.complete) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+      }
+
+      if (targetImage) {
+        const maxSide = Math.max(targetImage.width, targetImage.height);
+        const drawWidth = (targetImage.width / maxSide) * template.baseSize;
+        const drawHeight = (targetImage.height / maxSide) * template.baseSize;
+
+        ctx.save();
+        ctx.translate(template.x, template.y);
+        ctx.rotate(template.rotation * Math.PI / 180);
+        ctx.drawImage(
+          targetImage,
+          -drawWidth / 2,
+          -drawHeight / 2,
+          drawWidth,
+          drawHeight
+        );
+        ctx.restore();
+      }
+    }
+
+    downloadBtn.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "estinien-kick-maker.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+  </script>
 </body>
 </html>
