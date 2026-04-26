@@ -34,30 +34,24 @@
       align-items: center;
     }
 
-    .hidden-file {
-      display: none;
-    }
-
-    .upload-btn {
-      padding: 12px 18px;
+    .upload-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #2f2f2f;
+      padding: 10px 14px;
       border-radius: 10px;
-      font-weight: bold;
-      font-size: 16px;
-      background: #ffffff;
-      color: #111;
-      cursor: pointer;
-      display: inline-block;
-      white-space: nowrap;
     }
 
-    .upload-btn:hover {
-      background: #e8e8e8;
+    input[type="file"] {
+      color: white;
+      max-width: 230px;
     }
 
     .file-name {
       color: #ccc;
       font-size: 14px;
-      max-width: 220px;
+      max-width: 180px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -117,9 +111,10 @@
   <p>사진 1장을 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
 
   <div class="panel">
-    <label class="upload-btn" for="targetUpload">사진 업로드</label>
-    <input type="file" id="targetUpload" class="hidden-file" accept="image/*">
-    <span id="fileName" class="file-name">선택된 사진 없음</span>
+    <div class="upload-area">
+      <input type="file" id="targetUpload" accept="image/*">
+      <span id="fileName" class="file-name">선택된 사진 없음</span>
+    </div>
 
     <select id="templateSelect">
       <option value="fold">다리접기샷</option>
@@ -146,15 +141,10 @@
     const effectToggle = document.getElementById("effectToggle");
     const downloadBtn = document.getElementById("downloadBtn");
 
-    /*
-      현재 네 assets 폴더 기준:
-      - estinien-kick-wide.png  = 다리접기샷으로 사용
-      - estinien-kick-close.png = 다리펴기샷으로 사용
-    */
     const templates = {
       fold: {
         name: "darijeopgi",
-        file: "assets/estinien-kick-wide.png",
+        file: "assets/estinien-kick-close.png",
         x: 1100,
         y: 255,
         baseSize: 220,
@@ -162,7 +152,7 @@
       },
       stretch: {
         name: "daripyeogi",
-        file: "assets/estinien-kick-close.png",
+        file: "assets/estinien-kick-wide.png",
         x: 850,
         y: 310,
         baseSize: 190,
@@ -220,7 +210,6 @@
       const centerX = template.x;
       const centerY = template.y;
 
-      // 1) 수평 속도선
       ctx.save();
       ctx.globalAlpha = 0.55;
       ctx.filter = "blur(3px)";
@@ -244,7 +233,6 @@
 
       ctx.restore();
 
-      // 2) 검은 실루엣 잔상
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
