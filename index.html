@@ -30,7 +30,7 @@
       margin-bottom: 20px;
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 14px;
       align-items: center;
     }
 
@@ -39,24 +39,34 @@
     }
 
     .upload-btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
+      padding: 12px 18px;
+      border-radius: 10px;
       font-weight: bold;
-      background: white;
+      font-size: 16px;
+      background: #ffffff;
       color: #111;
       cursor: pointer;
       display: inline-block;
+      white-space: nowrap;
     }
 
     .upload-btn:hover {
       background: #e8e8e8;
     }
 
+    .file-name {
+      color: #ccc;
+      font-size: 14px;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     button, select {
-      padding: 10px 16px;
+      padding: 12px 18px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: bold;
       font-size: 16px;
     }
@@ -82,18 +92,15 @@
       align-items: center;
       gap: 8px;
       background: #2f2f2f;
-      padding: 10px 14px;
+      padding: 12px 16px;
       border-radius: 10px;
+      white-space: nowrap;
     }
 
     .toggle-box label {
       cursor: pointer;
       user-select: none;
-    }
-
-    .file-name {
-      color: #ccc;
-      font-size: 14px;
+      font-weight: bold;
     }
 
     canvas {
@@ -110,13 +117,13 @@
   <p>사진 1장을 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
 
   <div class="panel">
-    <label for="targetUpload" class="upload-btn">사진 업로드</label>
+    <label class="upload-btn" for="targetUpload">사진 업로드</label>
     <input type="file" id="targetUpload" class="hidden-file" accept="image/*">
     <span id="fileName" class="file-name">선택된 사진 없음</span>
 
     <select id="templateSelect">
-      <option value="close">다리접기샷</option>
-      <option value="wide">다리펴기샷</option>
+      <option value="fold">다리접기샷</option>
+      <option value="stretch">다리펴기샷</option>
     </select>
 
     <div class="toggle-box">
@@ -139,17 +146,22 @@
     const effectToggle = document.getElementById("effectToggle");
     const downloadBtn = document.getElementById("downloadBtn");
 
+    /*
+      현재 네 assets 폴더 기준:
+      - estinien-kick-wide.png  = 다리접기샷으로 사용
+      - estinien-kick-close.png = 다리펴기샷으로 사용
+    */
     const templates = {
-      wide: {
-        name: "wide",
+      fold: {
+        name: "darijeopgi",
         file: "assets/estinien-kick-wide.png",
         x: 1100,
         y: 255,
         baseSize: 220,
         rotation: -10
       },
-      close: {
-        name: "close",
+      stretch: {
+        name: "daripyeogi",
         file: "assets/estinien-kick-close.png",
         x: 850,
         y: 310,
@@ -158,17 +170,20 @@
       }
     };
 
-    let currentTemplateName = "close";
+    let currentTemplateName = "fold";
     let bgImage = new Image();
     let targetImage = null;
     let effectEnabled = true;
 
     function loadBackground() {
       const template = templates[currentTemplateName];
+
       bgImage = new Image();
+
       bgImage.onload = () => {
         draw();
       };
+
       bgImage.src = template.file;
     }
 
@@ -205,6 +220,7 @@
       const centerX = template.x;
       const centerY = template.y;
 
+      // 1) 수평 속도선
       ctx.save();
       ctx.globalAlpha = 0.55;
       ctx.filter = "blur(3px)";
@@ -228,6 +244,7 @@
 
       ctx.restore();
 
+      // 2) 검은 실루엣 잔상
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
@@ -292,10 +309,9 @@
 
     downloadBtn.addEventListener("click", () => {
       const template = templates[currentTemplateName];
-      const fileLabel = template.name === "close" ? "darijeopgi" : "daripyeogi";
 
       const link = document.createElement("a");
-      link.download = "estinien-kick-maker-" + fileLabel + ".png";
+      link.download = "estinien-kick-maker-" + template.name + ".png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
