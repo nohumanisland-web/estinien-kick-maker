@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>에스티니앙 킥 메이커</title>
-
-  <!-- GIF 생성용 라이브러리 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -93,11 +89,6 @@
 
     button:hover {
       background: #6fa1ff;
-    }
-
-    button:disabled {
-      opacity: 0.55;
-      cursor: wait;
     }
 
     select {
@@ -203,7 +194,6 @@
       </div>
 
       <button id="downloadBtn">PNG 저장</button>
-      <button id="gifDownloadBtn">GIF 저장</button>
     </div>
 
     <div class="canvas-wrap">
@@ -220,7 +210,6 @@
     const templateSelect = document.getElementById("templateSelect");
     const effectToggle = document.getElementById("effectToggle");
     const downloadBtn = document.getElementById("downloadBtn");
-    const gifDownloadBtn = document.getElementById("gifDownloadBtn");
 
     const templates = {
       fold: {
@@ -241,15 +230,6 @@
       }
     };
 
-    const gifTemplate = {
-      name: "motion",
-      file: "assets/estinien-kick-motion.gif",
-      x: 1080,
-      y: 300,
-      baseSize: 205,
-      rotation: -12
-    };
-
     let currentTemplateName = "fold";
     let bgImage = new Image();
     let targetImage = null;
@@ -258,11 +238,9 @@
     function loadBackground() {
       const template = templates[currentTemplateName];
       bgImage = new Image();
-
       bgImage.onload = () => {
         draw();
       };
-
       bgImage.src = template.file;
     }
 
@@ -294,10 +272,6 @@
       effectEnabled = effectToggle.checked;
       draw();
     });
-
-    function wait(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
 
     function getDrawSize(template) {
       const maxSide = Math.max(targetImage.width, targetImage.height);
@@ -406,101 +380,6 @@
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
-
-    async function makeGif() {
-      if (!targetImage) {
-        alert("먼저 사진을 업로드해줘.");
-        return;
-      }
-
-      gifDownloadBtn.disabled = true;
-      gifDownloadBtn.textContent = "GIF 만드는 중...";
-
-      try {
-        const gifBg = new Image();
-        gifBg.src = gifTemplate.file;
-
-        await new Promise((resolve, reject) => {
-          gifBg.onload = resolve;
-          gifBg.onerror = reject;
-        });
-
-        const frameCount = 10;
-        const delay = 90;
-        const size = getDrawSize(gifTemplate);
-        const frames = [];
-
-        for (let i = 0; i < frameCount; i++) {
-          await wait(delay);
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-          ctx.drawImage(gifBg, 0, 0, canvas.width, canvas.height);
-
-          const t = i / (frameCount - 1);
-
-          const movingTemplate = {
-            ...gifTemplate,
-            x: gifTemplate.x + t * 150,
-            y: gifTemplate.y - t * 70,
-            rotation: gifTemplate.rotation + t * 35
-          };
-
-          if (effectEnabled) {
-            drawMotionEffect(movingTemplate, size.width, size.height);
-          }
-
-          ctx.save();
-          ctx.translate(movingTemplate.x, movingTemplate.y);
-          ctx.rotate(movingTemplate.rotation * Math.PI / 180);
-          ctx.drawImage(
-            targetImage,
-            -size.width / 2,
-            -size.height / 2,
-            size.width,
-            size.height
-          );
-          ctx.restore();
-
-          frames.push(canvas.toDataURL("image/png"));
-        }
-
-        gifshot.createGIF({
-          images: frames,
-          gifWidth: canvas.width,
-          gifHeight: canvas.height,
-          interval: delay / 1000,
-          numFrames: frameCount,
-          frameDuration: 1,
-          sampleInterval: 10,
-          progressCallback: function(progress) {
-            gifDownloadBtn.textContent = "GIF 만드는 중... " + Math.round(progress * 100) + "%";
-          }
-        }, function(obj) {
-          if (!obj.error) {
-            const link = document.createElement("a");
-            link.download = "estinien-kick-maker-motion.gif";
-            link.href = obj.image;
-            link.click();
-          } else {
-            alert("GIF 만들기에 실패했어. PNG 저장은 그대로 사용할 수 있어.");
-          }
-
-          gifDownloadBtn.disabled = false;
-          gifDownloadBtn.textContent = "GIF 저장";
-          draw();
-        });
-
-      } catch (error) {
-        alert("GIF 배경 파일을 불러오지 못했어. assets/estinien-kick-motion.gif 파일명을 확인해줘.");
-
-        gifDownloadBtn.disabled = false;
-        gifDownloadBtn.textContent = "GIF 저장";
-        draw();
-      }
-    }
-
-    gifDownloadBtn.addEventListener("click", makeGif);
   </script>
 </body>
 </html>
