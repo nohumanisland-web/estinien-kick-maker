@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>에스티니앙 킥 메이커</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
+  <!-- GIF 생성용 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
 
   <style>
     * {
@@ -243,9 +244,9 @@
     const gifTemplate = {
       name: "motion",
       file: "assets/estinien-kick-motion.gif",
-      x: 1050,
-      y: 275,
-      baseSize: 210,
+      x: 1080,
+      y: 300,
+      baseSize: 205,
       rotation: -12
     };
 
@@ -257,9 +258,11 @@
     function loadBackground() {
       const template = templates[currentTemplateName];
       bgImage = new Image();
+
       bgImage.onload = () => {
         draw();
       };
+
       bgImage.src = template.file;
     }
 
@@ -292,8 +295,13 @@
       draw();
     });
 
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     function getDrawSize(template) {
       const maxSide = Math.max(targetImage.width, targetImage.height);
+
       return {
         width: (targetImage.width / maxSide) * template.baseSize,
         height: (targetImage.height / maxSide) * template.baseSize
@@ -399,10 +407,6 @@
       link.click();
     });
 
-    function wait(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     async function makeGif() {
       if (!targetImage) {
         alert("먼저 사진을 업로드해줘.");
@@ -412,77 +416,88 @@
       gifDownloadBtn.disabled = true;
       gifDownloadBtn.textContent = "GIF 만드는 중...";
 
-      const gifBg = new Image();
-      gifBg.src = gifTemplate.file;
+      try {
+        const gifBg = new Image();
+        gifBg.src = gifTemplate.file;
 
-      await new Promise(resolve => {
-        gifBg.onload = resolve;
-      });
+        await new Promise((resolve, reject) => {
+          gifBg.onload = resolve;
+          gifBg.onerror = reject;
+        });
 
-      const gif = new GIF({
-        workers: 2,
-        quality: 12,
-        width: canvas.width,
-        height: canvas.height,
-        workerScript: "https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js"
-      });
+        const frameCount = 10;
+        const delay = 90;
+        const size = getDrawSize(gifTemplate);
+        const frames = [];
 
-      const frameCount = 18;
-      const delay = 70;
-      const size = getDrawSize(gifTemplate);
+        for (let i = 0; i < frameCount; i++) {
+          await wait(delay);
 
-      for (let i = 0; i < frameCount; i++) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 브라우저가 GIF의 현재 프레임을 그리게 살짝 기다림
-        ctx.drawImage(gifBg, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(gifBg, 0, 0, canvas.width, canvas.height);
 
-        const t = i / (frameCount - 1);
+          const t = i / (frameCount - 1);
 
-        const movingTemplate = {
-          ...gifTemplate,
-          x: gifTemplate.x + t * 160,
-          y: gifTemplate.y - t * 70,
-          rotation: gifTemplate.rotation + t * 35
-        };
+          const movingTemplate = {
+            ...gifTemplate,
+            x: gifTemplate.x + t * 150,
+            y: gifTemplate.y - t * 70,
+            rotation: gifTemplate.rotation + t * 35
+          };
 
-        if (effectEnabled) {
-          drawMotionEffect(movingTemplate, size.width, size.height);
+          if (effectEnabled) {
+            drawMotionEffect(movingTemplate, size.width, size.height);
+          }
+
+          ctx.save();
+          ctx.translate(movingTemplate.x, movingTemplate.y);
+          ctx.rotate(movingTemplate.rotation * Math.PI / 180);
+          ctx.drawImage(
+            targetImage,
+            -size.width / 2,
+            -size.height / 2,
+            size.width,
+            size.height
+          );
+          ctx.restore();
+
+          frames.push(canvas.toDataURL("image/png"));
         }
 
-        ctx.save();
-        ctx.translate(movingTemplate.x, movingTemplate.y);
-        ctx.rotate(movingTemplate.rotation * Math.PI / 180);
-        ctx.drawImage(
-          targetImage,
-          -size.width / 2,
-          -size.height / 2,
-          size.width,
-          size.height
-        );
-        ctx.restore();
+        gifshot.createGIF({
+          images: frames,
+          gifWidth: canvas.width,
+          gifHeight: canvas.height,
+          interval: delay / 1000,
+          numFrames: frameCount,
+          frameDuration: 1,
+          sampleInterval: 10,
+          progressCallback: function(progress) {
+            gifDownloadBtn.textContent = "GIF 만드는 중... " + Math.round(progress * 100) + "%";
+          }
+        }, function(obj) {
+          if (!obj.error) {
+            const link = document.createElement("a");
+            link.download = "estinien-kick-maker-motion.gif";
+            link.href = obj.image;
+            link.click();
+          } else {
+            alert("GIF 만들기에 실패했어. PNG 저장은 그대로 사용할 수 있어.");
+          }
 
-        gif.addFrame(canvas, { copy: true, delay });
+          gifDownloadBtn.disabled = false;
+          gifDownloadBtn.textContent = "GIF 저장";
+          draw();
+        });
 
-        await wait(delay);
-      }
-
-      gif.on("finished", (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = "estinien-kick-maker-motion.gif";
-        link.href = url;
-        link.click();
-
-        URL.revokeObjectURL(url);
+      } catch (error) {
+        alert("GIF 배경 파일을 불러오지 못했어. assets/estinien-kick-motion.gif 파일명을 확인해줘.");
 
         gifDownloadBtn.disabled = false;
         gifDownloadBtn.textContent = "GIF 저장";
-
         draw();
-      });
-
-      gif.render();
+      }
     }
 
     gifDownloadBtn.addEventListener("click", makeGif);
