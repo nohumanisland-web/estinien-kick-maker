@@ -2,25 +2,39 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>에스티니앙 킥 메이커</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 24px;
       background: #111;
       color: white;
       font-family: Arial, sans-serif;
+      overflow-x: hidden;
     }
 
     h1 {
       margin-top: 0;
       margin-bottom: 8px;
+      font-size: 36px;
     }
 
     p {
       color: #ccc;
       margin-top: 0;
       margin-bottom: 20px;
+      font-size: 17px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
     .panel {
@@ -41,11 +55,13 @@
       background: #2f2f2f;
       padding: 10px 14px;
       border-radius: 10px;
+      max-width: 100%;
+      min-width: 0;
     }
 
     input[type="file"] {
       color: white;
-      max-width: 230px;
+      max-width: 260px;
     }
 
     .file-name {
@@ -97,39 +113,93 @@
       font-weight: bold;
     }
 
+    .canvas-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+    }
+
     canvas {
-      max-width: 100%;
+      width: 100%;
+      max-width: 1365px;
+      height: auto;
       border: 2px solid #444;
       border-radius: 12px;
       background: #333;
       display: block;
     }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 14px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      p {
+        font-size: 15px;
+      }
+
+      .panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .upload-area {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      input[type="file"] {
+        max-width: 100%;
+      }
+
+      .file-name {
+        max-width: 100%;
+      }
+
+      button,
+      select,
+      .toggle-box {
+        width: 100%;
+      }
+
+      .toggle-box {
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>에스티니앙 킥 메이커</h1>
-  <p>사진 1장을 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
+  <div class="app">
+    <h1>에스티니앙 킥 메이커</h1>
+    <p>사진 1장을 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
 
-  <div class="panel">
-    <div class="upload-area">
-      <input type="file" id="targetUpload" accept="image/*">
-      <span id="fileName" class="file-name">선택된 사진 없음</span>
+    <div class="panel">
+      <div class="upload-area">
+        <input type="file" id="targetUpload" accept="image/*">
+        <span id="fileName" class="file-name">선택된 사진 없음</span>
+      </div>
+
+      <select id="templateSelect">
+        <option value="fold">다리접기샷</option>
+        <option value="stretch">다리펴기샷</option>
+      </select>
+
+      <div class="toggle-box">
+        <input type="checkbox" id="effectToggle" checked>
+        <label for="effectToggle">슝 효과 켜기</label>
+      </div>
+
+      <button id="downloadBtn">PNG 저장</button>
     </div>
 
-    <select id="templateSelect">
-      <option value="fold">다리접기샷</option>
-      <option value="stretch">다리펴기샷</option>
-    </select>
-
-    <div class="toggle-box">
-      <input type="checkbox" id="effectToggle" checked>
-      <label for="effectToggle">슝 효과 켜기</label>
+    <div class="canvas-wrap">
+      <canvas id="canvas" width="1365" height="768"></canvas>
     </div>
-
-    <button id="downloadBtn">PNG 저장</button>
   </div>
-
-  <canvas id="canvas" width="1365" height="768"></canvas>
 
   <script>
     const canvas = document.getElementById("canvas");
@@ -145,10 +215,10 @@
       fold: {
         name: "darijeopgi",
         file: "assets/estinien-kick-close.png",
-        x: 1100,
-        y: 255,
-        baseSize: 220,
-        rotation: -10
+        x: 980,
+        y: 265,
+        baseSize: 210,
+        rotation: -12
       },
       stretch: {
         name: "daripyeogi",
@@ -167,13 +237,10 @@
 
     function loadBackground() {
       const template = templates[currentTemplateName];
-
       bgImage = new Image();
-
       bgImage.onload = () => {
         draw();
       };
-
       bgImage.src = template.file;
     }
 
@@ -233,6 +300,7 @@
 
       ctx.restore();
 
+      
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
