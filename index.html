@@ -59,15 +59,22 @@
       min-width: 0;
     }
 
+    .upload-label {
+      font-size: 14px;
+      font-weight: bold;
+      color: #ddd;
+      min-width: 64px;
+    }
+
     input[type="file"] {
       color: white;
-      max-width: 260px;
+      max-width: 220px;
     }
 
     .file-name {
       color: #ccc;
       font-size: 14px;
-      max-width: 180px;
+      max-width: 150px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -129,6 +136,13 @@
       display: block;
     }
 
+    .notice {
+      margin-top: 18px;
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
     @media (max-width: 700px) {
       body {
         padding: 14px;
@@ -150,6 +164,10 @@
       .upload-area {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      .upload-label {
+        min-width: auto;
       }
 
       input[type="file"] {
@@ -175,12 +193,19 @@
 <body>
   <div class="app">
     <h1>에스티니앙 킥 메이커</h1>
-    <p>사진 1장을 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
+    <p>앞/뒤 사진을 각각 업로드하고 배경을 고르면 자동으로 합성됩니다.</p>
 
     <div class="panel">
       <div class="upload-area">
+        <span class="upload-label">앞쪽</span>
         <input type="file" id="targetUpload" accept="image/*">
         <span id="fileName" class="file-name">선택된 사진 없음</span>
+      </div>
+
+      <div class="upload-area">
+        <span class="upload-label">뒤쪽</span>
+        <input type="file" id="rearUpload" accept="image/*">
+        <span id="rearFileName" class="file-name">선택된 사진 없음</span>
       </div>
 
       <select id="templateSelect">
@@ -190,7 +215,17 @@
 
       <div class="toggle-box">
         <input type="checkbox" id="effectToggle" checked>
-        <label for="effectToggle">슝 효과 켜기</label>
+        <label for="effectToggle">앞쪽 슝 켜기</label>
+      </div>
+
+      <div class="toggle-box">
+        <input type="checkbox" id="rearToggle" checked>
+        <label for="rearToggle">뒤쪽 합성 켜기</label>
+      </div>
+
+      <div class="toggle-box">
+        <input type="checkbox" id="rearEffectToggle" checked>
+        <label for="rearEffectToggle">뒤쪽 슝 켜기</label>
       </div>
 
       <button id="downloadBtn">PNG 저장</button>
@@ -199,6 +234,14 @@
     <div class="canvas-wrap">
       <canvas id="canvas" width="1365" height="768"></canvas>
     </div>
+
+    <div class="notice">
+      본 페이지는 비상업적 팬 활동 및 개인적인 재미를 위한 이미지 합성 도구입니다.<br>
+      FINAL FANTASY XIV 및 관련 이미지, 캐릭터 등의 모든 권리는 SQUARE ENIX에 있습니다.<br>
+      본 도구는 공식 서비스가 아니며 SQUARE ENIX와 무관합니다.<br><br>
+      타인에 대한 조롱, 비방, 혐오, 괴롭힘, 성적 불쾌감을 유발하는 용도 등 부적절한 사용을 금지합니다.<br>
+      문제가 되는 사용 사례가 확인될 경우 게시물 또는 관련 이미지를 삭제해 주세요.
+    </div>
   </div>
 
   <script>
@@ -206,34 +249,83 @@
     const ctx = canvas.getContext("2d");
 
     const targetUpload = document.getElementById("targetUpload");
+    const rearUpload = document.getElementById("rearUpload");
+
     const fileName = document.getElementById("fileName");
+    const rearFileName = document.getElementById("rearFileName");
+
     const templateSelect = document.getElementById("templateSelect");
     const effectToggle = document.getElementById("effectToggle");
+    const rearToggle = document.getElementById("rearToggle");
+    const rearEffectToggle = document.getElementById("rearEffectToggle");
     const downloadBtn = document.getElementById("downloadBtn");
 
     const templates = {
       fold: {
         name: "darijeopgi",
         file: "assets/estinien-kick-close.png",
-        x: 850,
-        y: 310,
-        baseSize: 190,
-        rotation: -16
+
+        // 앞쪽 = 기존 기준 유지
+        main: {
+          x: 850,
+          y: 310,
+          baseSize: 190,
+          rotation: -16,
+          motionVX: 1,
+          motionVY: 0
+        },
+
+        // 뒤쪽 = 고정 위치
+        rear: {
+          x: 140,
+          y: 595,
+          baseSize: 120,
+          rotation: 10,
+
+          // 오른쪽 위에서 이 캐릭터 쪽으로 다가오는 느낌
+          motionVX: -0.88,
+          motionVY: 0.48
+        }
       },
+
       stretch: {
         name: "daripyeogi",
         file: "assets/estinien-kick-wide.png",
-        x: 1100,
-        y: 255,
-        baseSize: 220,
-        rotation: -10
+
+        // 앞쪽 = 기존 기준 유지
+        main: {
+          x: 1100,
+          y: 255,
+          baseSize: 220,
+          rotation: -10,
+          motionVX: 1,
+          motionVY: 0
+        },
+
+        // 뒤쪽 = 고정 위치
+        rear: {
+          x: 120,
+          y: 600,
+          baseSize: 135,
+          rotation: 12,
+
+          // 오른쪽 위에서 이 캐릭터 쪽으로 다가오는 느낌
+          motionVX: -0.88,
+          motionVY: 0.48
+        }
       }
     };
 
     let currentTemplateName = "fold";
     let bgImage = new Image();
+
+    // 앞/뒤 이미지를 완전히 따로 관리
     let targetImage = null;
+    let rearImage = null;
+
     let effectEnabled = true;
+    let rearEnabled = true;
+    let rearEffectEnabled = true;
 
     function loadBackground() {
       const template = templates[currentTemplateName];
@@ -246,6 +338,7 @@
 
     loadBackground();
 
+    // 앞쪽 업로드
     targetUpload.addEventListener("change", () => {
       const file = targetUpload.files[0];
       if (!file) return;
@@ -263,6 +356,24 @@
       img.src = url;
     });
 
+    // 뒤쪽 업로드
+    rearUpload.addEventListener("change", () => {
+      const file = rearUpload.files[0];
+      if (!file) return;
+
+      rearFileName.textContent = file.name;
+
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+
+      img.onload = () => {
+        rearImage = img;
+        draw();
+      };
+
+      img.src = url;
+    });
+
     templateSelect.addEventListener("change", () => {
       currentTemplateName = templateSelect.value;
       loadBackground();
@@ -273,59 +384,99 @@
       draw();
     });
 
-    function getDrawSize(template) {
-      const maxSide = Math.max(targetImage.width, targetImage.height);
+    rearToggle.addEventListener("change", () => {
+      rearEnabled = rearToggle.checked;
+      draw();
+    });
+
+    rearEffectToggle.addEventListener("change", () => {
+      rearEffectEnabled = rearEffectToggle.checked;
+      draw();
+    });
+
+    function getDrawSize(image, slot) {
+      const maxSide = Math.max(image.width, image.height);
 
       return {
-        width: (targetImage.width / maxSide) * template.baseSize,
-        height: (targetImage.height / maxSide) * template.baseSize
+        width: (image.width / maxSide) * slot.baseSize,
+        height: (image.height / maxSide) * slot.baseSize
       };
     }
 
-    function drawMotionEffect(template, drawWidth, drawHeight) {
-      const centerX = template.x;
-      const centerY = template.y;
+    function normalizeVector(x, y) {
+      const length = Math.sqrt(x * x + y * y) || 1;
+      return {
+        x: x / length,
+        y: y / length
+      };
+    }
 
+    function drawMotionEffect(slot, image, drawWidth, drawHeight) {
+      const centerX = slot.x;
+      const centerY = slot.y;
+
+      const vec = normalizeVector(slot.motionVX ?? 1, slot.motionVY ?? 0);
+      const vx = vec.x;
+      const vy = vec.y;
+
+      // 진행 방향에 수직인 벡터
+      const px = -vy;
+      const py = vx;
+
+      // 모션 라인
       ctx.save();
-      ctx.globalAlpha = 0.55;
-      ctx.filter = "blur(3px)";
+      ctx.globalAlpha = 0.42;
+      ctx.filter = "blur(2.5px)";
 
-      const lineStartX = centerX - 520;
-      const lineEndX = centerX - 30;
+      const bandCount = 12;
+      const bandGap = Math.max(6, drawHeight / 9);
+      const farLen = 430;
+      const nearLen = 28;
 
-      for (let i = 0; i < 18; i++) {
-        const y = centerY - drawHeight * 0.45 + i * (drawHeight / 14);
-        const thickness = i % 3 === 0 ? 10 : 5;
+      for (let i = -Math.floor(bandCount / 2); i <= Math.floor(bandCount / 2); i++) {
+        const offset = i * bandGap;
 
-        const gradient = ctx.createLinearGradient(lineStartX, y, lineEndX, y);
-        gradient.addColorStop(0, "rgba(255,255,255,0)");
-        gradient.addColorStop(0.25, "rgba(255,255,255,0.25)");
-        gradient.addColorStop(0.7, "rgba(30,30,30,0.45)");
-        gradient.addColorStop(1, "rgba(30,30,30,0)");
+        const sx = centerX - vx * farLen + px * offset;
+        const sy = centerY - vy * farLen + py * offset;
+        const ex = centerX - vx * nearLen + px * offset;
+        const ey = centerY - vy * nearLen + py * offset;
 
-        ctx.fillStyle = gradient;
-        ctx.fillRect(lineStartX, y, lineEndX - lineStartX, thickness);
+        const grad = ctx.createLinearGradient(sx, sy, ex, ey);
+        grad.addColorStop(0, "rgba(255,255,255,0)");
+        grad.addColorStop(0.3, "rgba(255,255,255,0.18)");
+        grad.addColorStop(0.7, "rgba(60,60,60,0.30)");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = Math.abs(i) % 3 === 0 ? 8 : 4;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
       }
 
       ctx.restore();
 
+      // 잔상
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
         ctx.save();
 
-        const offsetX = i * 32;
-        const offsetY = i * 2;
+        const offset = i * 34;
         const alpha = 0.09 + i * 0.035;
 
         ctx.globalAlpha = alpha;
         ctx.filter = "brightness(0) blur(1px)";
 
-        ctx.translate(template.x - offsetX, template.y + offsetY);
-        ctx.rotate((template.rotation - i * 2) * Math.PI / 180);
+        const tx = slot.x - vx * offset;
+        const ty = slot.y - vy * offset;
+
+        ctx.translate(tx, ty);
+        ctx.rotate((slot.rotation - i * 2) * Math.PI / 180);
 
         ctx.drawImage(
-          targetImage,
+          image,
           -drawWidth / 2,
           -drawHeight / 2,
           drawWidth,
@@ -339,20 +490,22 @@
       ctx.filter = "none";
     }
 
-    function drawTarget(template, drawWidth, drawHeight) {
-      if (effectEnabled) {
-        drawMotionEffect(template, drawWidth, drawHeight);
+    function drawImageToSlot(image, slot, useEffect) {
+      const size = getDrawSize(image, slot);
+
+      if (useEffect) {
+        drawMotionEffect(slot, image, size.width, size.height);
       }
 
       ctx.save();
-      ctx.translate(template.x, template.y);
-      ctx.rotate(template.rotation * Math.PI / 180);
+      ctx.translate(slot.x, slot.y);
+      ctx.rotate(slot.rotation * Math.PI / 180);
       ctx.drawImage(
-        targetImage,
-        -drawWidth / 2,
-        -drawHeight / 2,
-        drawWidth,
-        drawHeight
+        image,
+        -size.width / 2,
+        -size.height / 2,
+        size.width,
+        size.height
       );
       ctx.restore();
     }
@@ -366,9 +519,14 @@
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
       }
 
-      if (targetImage) {
-        const size = getDrawSize(template);
-        drawTarget(template, size.width, size.height);
+      // 뒤쪽: rearUpload로 넣은 사진만 사용
+      if (rearEnabled && rearImage && template.rear) {
+        drawImageToSlot(rearImage, template.rear, rearEffectEnabled);
+      }
+
+      // 앞쪽: targetUpload로 넣은 사진만 사용
+      if (targetImage && template.main) {
+        drawImageToSlot(targetImage, template.main, effectEnabled);
       }
     }
 
