@@ -265,7 +265,7 @@
         name: "darijeopgi",
         file: "assets/estinien-kick-close.png",
 
-        
+        // 앞쪽 = 기존 기준 유지
         main: {
           x: 850,
           y: 310,
@@ -275,16 +275,14 @@
           motionVY: 0
         },
 
-        
+        // 뒤쪽 = 파란 장치 쪽으로 낮춤
         rear: {
-          x: 1150,
-          y: 130,
-          baseSize: 135,
-          rotation: -8,
-
-          
+          x: 1185,
+          y: 245,
+          baseSize: 120,
+          rotation: -10,
           motionVX: -0.92,
-          motionVY: 0.25
+          motionVY: 0.22
         }
       },
 
@@ -292,7 +290,7 @@
         name: "daripyeogi",
         file: "assets/estinien-kick-wide.png",
 
-        
+        // 앞쪽 = 기존 기준 유지
         main: {
           x: 1100,
           y: 255,
@@ -302,16 +300,14 @@
           motionVY: 0
         },
 
-        
+        // 뒤쪽 = 체크한 오른쪽 파란 장치 위로 조정
         rear: {
-          x: 1240,
-          y: 115,
-          baseSize: 145,
-          rotation: -8,
-
-          
+          x: 1230,
+          y: 305,
+          baseSize: 130,
+          rotation: -12,
           motionVX: -0.92,
-          motionVY: 0.25
+          motionVY: 0.22
         }
       }
     };
@@ -337,7 +333,6 @@
 
     loadBackground();
 
-    
     targetUpload.addEventListener("change", () => {
       const file = targetUpload.files[0];
       if (!file) return;
@@ -355,7 +350,6 @@
       img.src = url;
     });
 
-    
     rearUpload.addEventListener("change", () => {
       const file = rearUpload.files[0];
       if (!file) return;
@@ -395,7 +389,6 @@
 
     function getDrawSize(image, slot) {
       const maxSide = Math.max(image.width, image.height);
-
       return {
         width: (image.width / maxSide) * slot.baseSize,
         height: (image.height / maxSide) * slot.baseSize
@@ -515,12 +508,10 @@
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
       }
 
-      
       if (rearEnabled && rearImage && template.rear) {
         drawImageToSlot(rearImage, template.rear, rearEffectEnabled);
       }
 
-      
       if (targetImage && template.main) {
         drawImageToSlot(targetImage, template.main, effectEnabled);
       }
@@ -528,7 +519,6 @@
 
     downloadBtn.addEventListener("click", () => {
       const template = templates[currentTemplateName];
-
       const link = document.createElement("a");
       link.download = "estinien-kick-maker-" + template.name + ".png";
       link.href = canvas.toDataURL("image/png");
