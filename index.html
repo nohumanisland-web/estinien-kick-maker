@@ -178,6 +178,7 @@
       const centerX = template.x;
       const centerY = template.y;
 
+      // 1) 수평 속도선
       ctx.save();
       ctx.globalAlpha = 0.55;
       ctx.filter = "blur(3px)";
@@ -201,6 +202,7 @@
 
       ctx.restore();
 
+      // 2) 검은 실루엣 잔상
       const trailCount = 5;
 
       for (let i = trailCount; i >= 1; i--) {
@@ -265,9 +267,10 @@
 
     downloadBtn.addEventListener("click", () => {
       const template = templates[currentTemplateName];
+      const fileLabel = template.name === "close" ? "darijeopgi" : "daripyeogi";
 
       const link = document.createElement("a");
-      link.download = "estinien-kick-maker-" + template.name + ".png";
+      link.download = "estinien-kick-maker-" + fileLabel + ".png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
