@@ -265,6 +265,7 @@
         name: "darijeopgi",
         file: "assets/estinien-kick-close.png",
 
+        
         main: {
           x: 850,
           y: 310,
@@ -274,11 +275,12 @@
           motionVY: 0
         },
 
+        
         rear: {
           x: 1185,
           y: 245,
           baseSize: 120,
-          rotation: -10,
+          rotation: 18,
           motionVX: -0.92,
           motionVY: 0.22
         }
@@ -288,6 +290,7 @@
         name: "daripyeogi",
         file: "assets/estinien-kick-wide.png",
 
+        
         main: {
           x: 1100,
           y: 255,
@@ -297,6 +300,7 @@
           motionVY: 0
         },
 
+        
         rear: {
           x: 1230,
           y: 305,
@@ -399,66 +403,30 @@
       };
     }
 
+    
     function drawMotionEffect(slot, image, drawWidth, drawHeight) {
-      const centerX = slot.x;
-      const centerY = slot.y;
-
       const vec = normalizeVector(slot.motionVX ?? 1, slot.motionVY ?? 0);
       const vx = vec.x;
       const vy = vec.y;
 
-      const px = -vy;
-      const py = vx;
-
-      ctx.save();
-      ctx.globalAlpha = 0.42;
-      ctx.filter = "blur(2.5px)";
-
-      const bandCount = 12;
-      const bandGap = Math.max(6, drawHeight / 9);
-      const farLen = 430;
-      const nearLen = 28;
-
-      for (let i = -Math.floor(bandCount / 2); i <= Math.floor(bandCount / 2); i++) {
-        const offset = i * bandGap;
-
-        const sx = centerX - vx * farLen + px * offset;
-        const sy = centerY - vy * farLen + py * offset;
-        const ex = centerX - vx * nearLen + px * offset;
-        const ey = centerY - vy * nearLen + py * offset;
-
-        const grad = ctx.createLinearGradient(sx, sy, ex, ey);
-        grad.addColorStop(0, "rgba(255,255,255,0)");
-        grad.addColorStop(0.3, "rgba(255,255,255,0.18)");
-        grad.addColorStop(0.7, "rgba(60,60,60,0.30)");
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = Math.abs(i) % 3 === 0 ? 8 : 4;
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(ex, ey);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-
-      const trailCount = 5;
+      const trailCount = 6;
+      const gap = 26;
 
       for (let i = trailCount; i >= 1; i--) {
         ctx.save();
 
-        const offset = i * 34;
-        const alpha = 0.09 + i * 0.035;
-
-        ctx.globalAlpha = alpha;
-        ctx.filter = "brightness(0) blur(1px)";
+        const offset = i * gap;
+        const alpha = 0.08 + (trailCount - i) * 0.03;
+        const blur = 1 + i * 1.2;
 
         const tx = slot.x - vx * offset;
         const ty = slot.y - vy * offset;
 
+        ctx.globalAlpha = alpha;
+        ctx.filter = `blur(${blur}px)`;
+
         ctx.translate(tx, ty);
-        ctx.rotate((slot.rotation - i * 2) * Math.PI / 180);
+        ctx.rotate(slot.rotation * Math.PI / 180);
 
         ctx.drawImage(
           image,
@@ -522,4 +490,5 @@
     });
   </script>
 </body>
+</html>
 </html>
